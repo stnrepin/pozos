@@ -18,7 +18,7 @@ config:
 	cmake $(CMAKE_FLAGS)
 
 .PHONY: bins
-bins: config
+bins:
 	cmake --build $(BUILD_DIR)
 
 .PHONY: fel-exec

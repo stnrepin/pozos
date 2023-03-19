@@ -4,7 +4,8 @@
 // Taken from
 //      https://github.com/bigmagic123/d1-nezha-baremeta/blob/main/src/1.startup/main.c
 
-void pz_sys_uart_init(void) {
+void pz_sys_uart_init(void)
+{
     vaddr_t addr;
     uint32_t val;
 
@@ -51,10 +52,12 @@ void pz_sys_uart_init(void) {
     pz_write32(addr + 0x0c, val);
 }
 
-void pz_sys_uart_putc(char c) {
+void pz_sys_uart_putc(char c)
+{
     vaddr_t addr = 0x02500000;
 
-    while((pz_read32(addr + 0x7c) & (0x1 << 1)) == 0);
+    while ((pz_read32(addr + 0x7c) & (0x1 << 1)) == 0)
+        ;
     pz_write32(addr + 0x00, c);
 
     if (c == '\n') {
@@ -62,7 +65,8 @@ void pz_sys_uart_putc(char c) {
     }
 }
 
-void pz_sys_uart_puts(const char *s) {
+void pz_sys_uart_puts(const char *s)
+{
     while (*s != '\0') {
         pz_sys_uart_putc(*s);
         s++;
