@@ -1,7 +1,7 @@
-set(DIR ${CMAKE_CURRENT_SOURCE_DIR})
+set(dir ${CMAKE_CURRENT_SOURCE_DIR})
 set(
     SRC
-        ${DIR}/main.c
+        ${dir}/main.c
 
     PARENT_SCOPE
 )

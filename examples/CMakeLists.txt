@@ -1,24 +1,24 @@
-function(add_linker_script_to ELF_TARGET)
+function(add_linker_script_to elf_target)
     target_link_options(
-        ${ELF_TARGET}
-        PRIVATE -T ${RISCV_D1_LDSCRIPT}
+        ${elf_target}
+        PRIVATE -T ${LDSCRIPT}
     )
 endfunction()
 
-function(make_bin_file NAME ELF_TARGET)
+function(make_bin_file name elf_target)
     add_custom_target(
-        ${NAME}_bin
+        ${name}_bin
         ALL
-        DEPENDS ${ELF_TARGET}
+        DEPENDS ${elf_target}
     )
 
     add_custom_command(
-        TARGET ${NAME}_bin
+        TARGET ${name}_bin
         COMMAND ${CMAKE_OBJCOPY}
         ARGS
-            --binary-architecture=riscv64 --strip-all -O binary
-                $<TARGET_FILE:${ELF_TARGET}>
-                $<TARGET_FILE_DIR:${ELF_TARGET}>/${NAME}.bin
+            --binary-architecture=${CMAKE_SYSTEM_PROCESSOR} --strip-all -O binary
+            $<TARGET_FILE:${elf_target}>
+            $<TARGET_FILE_DIR:${elf_target}>/${name}.bin
     )
 endfunction()
 

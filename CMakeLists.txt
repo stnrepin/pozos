@@ -7,7 +7,10 @@ set(CMAKE_C_EXTENSIONS OFF)
 set(CMAKE_C_STANDARD_REQUIRED ON)
 
 set(EXAMPLE_PROJECTS "hello")
-set(RISCV_D1_LDSCRIPT "${CMAKE_CURRENT_SOURCE_DIR}/kern/arch/riscv_d1_link.ld")
+set(
+    LDSCRIPT
+        "${CMAKE_CURRENT_SOURCE_DIR}/kern/arch/${CMAKE_SYSTEM_PROCESSOR}/linker.ld"
+)
 
 add_compile_options(
     -Wall
