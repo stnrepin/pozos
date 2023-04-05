@@ -2,9 +2,10 @@ add_library(
     pozos_kern
         start.S
 
-        kernel.c
+        init.c
         printf.c
         uart.c
+        console.c
 )
 target_compile_definitions(
     pozos_kern

@@ -16,7 +16,7 @@ _start:
     la sp, __stack_end
 
     jal clear_bss
-    jal pz_sys_start
+    jal pz_start_kern
 _loop:
     wfi
     j _loop

@@ -1,19 +1,21 @@
 #ifndef SYS_SYSDEF_H
 #define SYS_SYSDEF_H
 
-typedef unsigned long long vaddr_t;
 typedef unsigned long long uint64_t;
+typedef volatile uint64_t vaddr_t;
 typedef unsigned int uint32_t;
 typedef unsigned char uint8_t;
 
 #define NULL ((void *)0)
+
+#define ATTR_WEAK __attribute__((weak))
 
 static inline void pz_write32(vaddr_t addr, uint32_t value)
 {
     *((volatile uint32_t *)(addr)) = value;
 }
 
-static inline uint32_t pz_read32(vaddr_t addr)
+static inline uint32_t pz_read32(const vaddr_t addr)
 {
     return *((volatile uint32_t *)(addr));
 }
