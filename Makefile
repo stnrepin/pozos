@@ -8,7 +8,8 @@ CMAKE_FLAGS := \
 	       -DCMAKE_EXPORT_COMPILE_COMMANDS=ON
 
 FEL := ./tools/xfel/xfel
-FEL_ADDR = 0x40000000
+# Should be the same that PZ_MEM_START (see toolchain.cmake)
+FEL_ADDR = 0x80000000
 
 RM := rm -f
 MAKEFLAGS += --no-print-directory

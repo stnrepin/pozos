@@ -1,7 +1,7 @@
 #ifndef SYS_KERNEL_H
 #define SYS_KERNEL_H
 
-#include "kern/sysdef.h"
+#include "kern/arch/sysdef.h"
 
 int pz_umain(void);
 

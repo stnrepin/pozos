@@ -1,0 +1,8 @@
+#ifndef ARCH_RISCV64_MM_H
+#define ARCH_RISCV64_MM_H
+
+#define PZ_PAGELVL_BITS 9
+#define PZ_PAGE_SHIFT 12
+#define PZ_PAGESZ (1 << PZ_PAGE_SHIFT)
+
+#endif // !ARCH_RISCV64_MM_H
