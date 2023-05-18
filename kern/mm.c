@@ -1,142 +1,137 @@
 #include "kern/mm.h"
 
 #include "kern/arch/mm.h"
-#include "kern/arch/init.h"
 
+#include "kern/printf.h"
+#include "kern/uart.h"
+#include "kern/kalloc.h"
+#include "kern/string.h"
 #include "kern/sysdef.h"
-
-#define MEGAPAGE_SIZE ((uintptr_t)(PAGESZ << PAGE_SHIFT))
-
-#define VA_BITS 39
-#define KVA_START ((uintptr_t)(-1) << (VA_BITS - 1))
 
 #ifndef PZ_MEM_START
 #warning "PZ_MEM_START is not defined. Use default value (0x80000000)"
 #define PZ_MEM_START 0x80000000
 #endif
 
-struct freepg_list {
-    size_t size;
-    struct freepg_list_node *head;
+#define KVA_START ((uintptr_t)(-1) << (VA_BITS - 1))
+
+#define PTE_R PZ_ARCH_MM_PAGE_R
+#define PTE_W PZ_ARCH_MM_PAGE_W
+#define PTE_X PZ_ARCH_MM_PAGE_X
+#define PTE_V PZ_ARCH_MM_PAGE_V
+
+typedef uint64_t *pagetbl_ptr_t;
+typedef uint64_t pte_t;
+
+struct kvm_info {
+    pagetbl_ptr_t ptbl;
 };
 
-struct freepg_list_node {
-    uintptr_t addr;
-};
+extern char _text_end[];
 
-struct kern_vm_info {
-    uintptr_t kva_to_pa_off;
-    uint64_t mem_sz;
-    uintptr_t first_free_page;
-    uint64_t nb_free_pages;
-    size_t next_free_page;
+static struct kvm_info g_kvm;
 
-    struct freepg_list freepgs;
-};
+static void kmap(uint64_t va, uint64_t pa, uint64_t sz, int perm);
+static int map(pagetbl_ptr_t tbl, uint64_t va, uint64_t pa, uint64_t sz,
+               int perm);
+pte_t *walk(pagetbl_ptr_t tbl, uint64_t va, int alloc);
 
-static struct kern_vm_info g_kvm_info;
-
-static inline uintptr_t pa_to_kva(uintptr_t phys_addr);
-
-static void init_alloc_early(void);
-static void *alloc_early(size_t n);
-
-static uintptr_t get_free_page_addr(size_t idx);
-
-void pz_mm_init_and_run(pz_mm_kern_init_vm_f *start_f)
+static inline void panic(const char *mes)
 {
-    void *start_f_va;
-    uintptr_t kstack_top_va;
-
-    kstack_top_va = pa_to_kva(pz_mm_init());
-    start_f_va = (void *)pa_to_kva((uintptr_t)start_f);
-
-    pz_arch_enter_privilege(start_f_va, kstack_top_va);
+    pz_sys_uart_puts(mes);
 }
 
-static void *alloc_early_align(size_t n, size_t align);
-
-uintptr_t pz_mm_init(void)
+void pz_mm_init(void)
 {
-    uintptr_t kstack_top;
+    g_kvm.ptbl = (pagetbl_ptr_t)pz_alloc_pnew();
 
-    // XXX: Device dependent
-    g_kvm_info.mem_sz = 16 * 1024 * 1024; // 16 MB;
+    memset((void *)g_kvm.ptbl, 0, PZ_PAGESZ);
 
-    init_alloc_early();
+    kmap(pz_sys_uart_base(), pz_sys_uart_base(), PZ_PAGESZ, PTE_R | PTE_W);
 
-    g_kvm_info.freepgs.size = g_kvm_info.mem_sz / PZ_PAGESZ;
-    g_kvm_info.freepgs.head = alloc_early(g_kvm_info.freepgs.size *
-                                          sizeof(struct freepg_list_node));
+    kmap((uint64_t)PZ_MEM_START, PZ_MEM_START,
+         (uint64_t)_text_end - PZ_MEM_START, PTE_R | PTE_X);
 
-    root_page_table = (void *)__page_alloc_assert();
-    __map_kernel_range(KVA_START, MEM_START, mem_size,
-                       PROT_READ | PROT_WRITE | PROT_EXEC);
-
-    flush_tlb();
-    write_csr(satp,
-              ((uintptr_t)root_page_table >> RISCV_PGSHIFT) | SATP_MODE_CHOICE);
-
-    uintptr_t kernel_stack_top = __page_alloc_assert() + RISCV_PGSIZE;
-
-    // relocate
-    g_kvm_info.kva_to_pa_off = KVA_START - PZ_MEM_START;
-    g_kvm_info.freepgs.head = (void *)pa_to_kva((uintptr_t)g_kvm_info.freepgs.head);
-    //root_page_table = (void *)pa2kva(root_page_table);
-
-    return kstack_top;
+    kmap((uint64_t)_text_end, (uint64_t)_text_end,
+         (PZ_MEM_START + PZ_MEM_SIZE) - (uint64_t)_text_end, PTE_R | PTE_W);
 }
 
-inline uintptr_t pa_to_kva(uintptr_t phys_addr)
+void pz_mm_init_cpu(void)
 {
-    return phys_addr + g_kvm_info.kva_to_pa_off;
+    pz_arch_mm_set_root_pg_tbl((void *)g_kvm.ptbl);
 }
 
-static void init_alloc_early(void)
+static void kmap(uint64_t va, uint64_t pa, uint64_t sz, int perm)
 {
-    uintptr_t user_sz;
-
-    user_sz = -KVA_START;
-    g_kvm_info.mem_sz = PZ_MIN(g_kvm_info.mem_sz, user_sz);
-
-    // From linker script.
-    // _lkr_kdata_end
-    extern char _kernel_data_end;
-
-    uintptr_t last_static_addr = (uintptr_t)&_kernel_data_end;
-    g_kvm_info.first_free_page = PZ_ROUNDUP(last_static_addr, PZ_PAGESZ);
-    g_kvm_info.nb_free_pages =
-            (g_kvm_info.mem_sz - (g_kvm_info.first_free_page - PZ_MEM_START)) /
-            PZ_PAGESZ;
+    if (map(g_kvm.ptbl, va, pa, sz, perm) != 0) {
+        panic("vm panic: map failed\n");
+    }
 }
 
-static void *alloc_early(size_t n)
+static int map(pagetbl_ptr_t tbl, uint64_t va, uint64_t pa, uint64_t sz,
+               int perm)
 {
-    size_t nb_pages = PZ_ROUNDUP(n, PZ_PAGESZ) / PZ_PAGESZ;
-    return alloc_early_align(nb_pages, 1);
+    int i;
+    uint64_t var, last;
+    pte_t *pte;
+
+    if (sz == 0) {
+        panic("vm panic: map: size == 0\n");
+        return -1;
+    }
+
+    var = PZ_ROUNDUP(va, PZ_PAGESZ);
+    last = PZ_ROUNDDOWN(va + sz - 1, PZ_PAGESZ);
+
+    i = 0;
+    while (1) {
+        pte = walk(tbl, var, 1);
+        if (pte == NULL) {
+            return -2;
+        }
+        if ((*pte & PTE_V) != 0) {
+            printf("i=%d, pa=%lx, var=%lx\n", i, pa, var);
+            panic("vm panic: map: already created PTE\n");
+            return -3;
+        }
+        *pte = PZ_ARCH_MM_PA2PTE(pa) | perm | PTE_V;
+        if (var == last) {
+            break;
+        }
+
+        var += PZ_PAGESZ;
+        pa += PZ_PAGESZ;
+        i++;
+    }
+
+    return 0;
 }
 
-static void *alloc_early_align(size_t n, size_t align)
+pte_t *walk(pagetbl_ptr_t tbl, uint64_t va, int alloc)
 {
-    size_t skip_pages;
-    size_t next_free_pg;
-    void *addr;
+    int lvl;
+    pte_t *pte;
 
-    next_free_pg = g_kvm_info.next_free_page;
+    if (va >= PZ_ARCH_MM_MAX_VA) {
+        panic("vm panic: walk: va too large\n");
+    }
 
-    skip_pages = (align - 1) & -(get_free_page_addr(next_free_pg) / PZ_PAGESZ);
-    n += skip_pages;
+    for (lvl = 2; lvl > 0; lvl--) {
+        pte = &tbl[PZ_ARCH_MM_GET_LVL(lvl, va)];
+        if (*pte & PTE_V) {
+            tbl = (pagetbl_ptr_t)PZ_ARCH_MM_PTE2PA(*pte);
+        } else {
+            if (!alloc) {
+                return 0;
+            }
+            tbl = (pagetbl_ptr_t)pz_alloc_pnew();
+            if (tbl == 0) {
+                return 0;
+            }
+            memset((void *)tbl, 0, PZ_PAGESZ);
+            *pte = PZ_ARCH_MM_PA2PTE(tbl) | PTE_V;
+        }
+    }
 
-    if (n + next_free_pg < n || n + next_free_pg > g_kvm_info.nb_free_pages)
-        return NULL;
-
-    addr = (void *)get_free_page_addr(next_free_pg + skip_pages);
-    next_free_pg += n;
-    g_kvm_info.next_free_page = next_free_pg;
-    return addr;
-}
-
-static uintptr_t get_free_page_addr(size_t idx)
-{
-    return g_kvm_info.first_free_page + idx * PZ_PAGESZ;
+    return &tbl[PZ_ARCH_MM_GET_LVL(0, va)];
 }

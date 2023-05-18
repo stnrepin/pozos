@@ -6,6 +6,8 @@ set(CMAKE_C_STANDARD 11)
 set(CMAKE_C_EXTENSIONS OFF)
 set(CMAKE_C_STANDARD_REQUIRED ON)
 
+message(STATUS "Use PZ_MEM_START = ${PZ_MEM_START}")
+
 set(EXAMPLE_PROJECTS "hello")
 set(
     LDSCRIPT
@@ -16,6 +18,7 @@ add_compile_options(
     -Wall
     -Wextra
     -Werror
+    -Wno-unused-function
 )
 
 add_subdirectory(kern)

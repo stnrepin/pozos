@@ -10,6 +10,7 @@
 #define ATTR_WEAK __attribute__((weak))
 
 #define PZ_MIN(a, b) ((a) < (b) ? (a) : (b))
-#define PZ_ROUNDUP(a, b) ((((a)-1)/(b)+1)*(b))
+#define PZ_ROUNDUP(a, to) ((((a)-1) / (to) + 1) * (to))
+#define PZ_ROUNDDOWN(a, to) (((a) / (to)) * (to))
 
 #endif // !SYSDEF_H

@@ -1,8 +1,9 @@
-#ifndef ARCH_RISCV64_SYSDEF_h
-#define ARCH_RISCV64_SYSDEF_h
+#ifndef ARCH_RISCV64_INIT_H
+#define ARCH_RISCV64_INIT_H
 
 #include "kern/arch/sysdef.h"
 
-void pz_arch_enter_privilege(void (*f)(uintptr_t), uintptr_t arg0);
+typedef void(start_kern_f)(void);
+void pz_arch_start_kern(start_kern_f sk_f);
 
-#endif // !ARCH_RISCV64_SYSDEF_h
+#endif // !ARCH_RISCV64_INIT_H

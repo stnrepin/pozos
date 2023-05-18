@@ -16,7 +16,8 @@ function(make_bin_file name elf_target)
         TARGET ${name}_bin
         COMMAND ${CMAKE_OBJCOPY}
         ARGS
-            --binary-architecture=${CMAKE_SYSTEM_PROCESSOR} --strip-all -O binary
+            --binary-architecture=${CMAKE_SYSTEM_PROCESSOR} --strip-all
+            -O binary
             $<TARGET_FILE:${elf_target}>
             $<TARGET_FILE_DIR:${elf_target}>/${name}.bin
     )

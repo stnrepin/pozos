@@ -2,6 +2,7 @@ add_library(
     pz_arch_riscv64
         start.S
         init.c
+        mm.c
 )
 
 target_include_directories(

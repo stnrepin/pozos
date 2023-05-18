@@ -2,16 +2,19 @@ add_subdirectory(arch/riscv64)
 
 add_library(
     pozos_kern
-        init.c
-        mm.c
-        sched.c
-        printf.c
-        uart.c
         console.c
+        init.c
+        kalloc.c
+        mm.c
+        printf.c
+        sched.c
+        string.c
+        uart.c
 )
 target_compile_definitions(
     pozos_kern
-    PRIVATE PRINTF_INCLUDE_CONFIG_H
+    PRIVATE
+        PRINTF_INCLUDE_CONFIG_H
 )
 target_include_directories(
     pozos_kern

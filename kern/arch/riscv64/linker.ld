@@ -1,101 +1,37 @@
-OUTPUT_FORMAT("elf64-littleriscv", "elf64-littleriscv", "elf64-littleriscv")
-OUTPUT_ARCH( "riscv" )
+OUTPUT_ARCH("riscv");
 
-ENTRY( _start )
+ENTRY(_start);
 
-SECTIONS
-{
+SECTIONS {
+    . = PZ_MEM_START;
 
-  /*--------------------------------------------------------------------*/
-  /* Code and read-only segment                                         */
-  /*--------------------------------------------------------------------*/
-
-  /* Begining of code and text segment */
-  . = MEM_START;
-  _ftext = .;
-
-  .text :
-  {
-    *(.text.init)
-  }
-
-  /* text: Program code section */
-  .text :
-  {
-    *(.text)
-    *(.text.*)
-    *(.gnu.linkonce.t.*)
-  }
-
-  /* rodata: Read-only data */
-  .rodata :
-  {
-    *(.rdata)
-    *(.rodata)
-    *(.rodata.*)
-    *(.gnu.linkonce.r.*)
-  }
-
-  /* End of code and read-only segment */
-  . = ALIGN(0x1000);
-  _etext = .;
-
-  /*--------------------------------------------------------------------*/
-  /* HTIF, isolated onto separate page                                  */
-  /*--------------------------------------------------------------------*/
-  .htif :
-  {
-    PROVIDE( __htif_base = . );
-    *(.htif)
-  }
-  . = ALIGN(0x1000);
-
-  /*--------------------------------------------------------------------*/
-  /* Initialized data segment                                           */
-  /*--------------------------------------------------------------------*/
-
-  /* Start of initialized data segment */
-  . = ALIGN(16);
-   _fdata = .;
-
-  /* data: Writable data */
-  .data :
-  {
-    *(.data)
-    *(.data.*)
-    *(.srodata*)
-    *(.gnu.linkonce.d.*)
-    *(.comment)
-  }
-
-  /* End of initialized data segment */
-  . = ALIGN(16);
-  _edata = .;
-
-  /*--------------------------------------------------------------------*/
-  /* Uninitialized data segment                                         */
-  /*--------------------------------------------------------------------*/
-
-  /* Start of uninitialized data segment */
-  . = .;
-  _fbss = .;
-
-  /* sbss: Uninitialized writeable small data section */
-  . = .;
-
-  /* bss: Uninitialized writeable data section */
-  . = .;
-  _bss_start = .;
-  .bss :
-  {
-    *(.bss)
-    *(.bss.*)
-    *(.sbss*)
-    *(.gnu.linkonce.b.*)
-    *(COMMON)
-  }
-
-  . = ALIGN(0x1000);
-  _bss_start = .;
-  _kernel_data_end = .;
+    .text : {
+        *(.init)
+        . = ALIGN(4K);
+        *(.text)
+        PROVIDE(_text_end = .);
+    }
+    .rodata : {
+        . = ALIGN(16);
+        *(.srodata .srodata.*)
+        . = ALIGN(16);
+        *(.rodata .rodata.*)
+        *(.eh_frame)
+    }
+    .data : {
+        . = ALIGN(16);
+        *(.sdata .sdata.*)
+        . = ALIGN(16);
+        *(.data .data.*)
+    }
+    .bss : {
+        . = ALIGN(16);
+        PROVIDE(_bss_start = .);
+        *(.sbss .sbss.*)
+        . = ALIGN(16);
+        *(.bss .bss.*)
+        PROVIDE(_bss_end = .);
+    }
+    PROVIDE(_mem_end = .);
 }
+

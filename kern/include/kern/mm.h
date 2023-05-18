@@ -3,10 +3,9 @@
 
 #include "kern/sysdef.h"
 
-uintptr_t pz_mm_init(void);
+#define PZ_MEM_SIZE (32 * 1024 * 1024)
 
-typedef void(pz_mm_kern_init_vm_f)(uintptr_t);
-
-void pz_mm_init_and_run(pz_mm_kern_init_vm_f *start_f);
+void pz_mm_init(void);
+void pz_mm_init_cpu(void);
 
 #endif // !SYS_MM_H
