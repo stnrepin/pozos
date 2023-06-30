@@ -1,4 +1,4 @@
-BUILD_DIR := build
+BUILD_DIR := build-deb
 EXAMPLES_BUILD_DIR := $(BUILD_DIR)/examples
 
 CMAKE := cmake
