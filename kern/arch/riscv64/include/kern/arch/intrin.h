@@ -268,7 +268,7 @@ static inline void pz_arch_intrin_sfence_vma()
     asm volatile("sfence.vma zero, zero");
 }
 
-__attribute__((noreturn)) static inline void pz_arch_intrin_mret()
+PZ_ATTR_NORETURN static inline void pz_arch_intrin_mret()
 {
     asm volatile("mret");
     __builtin_unreachable();

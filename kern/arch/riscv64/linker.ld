@@ -3,12 +3,13 @@ OUTPUT_ARCH("riscv");
 ENTRY(_start);
 
 SECTIONS {
-    . = PZ_MEM_START;
+    . = PZ_CONFIG_MEM_START;
 
     .text : {
         *(.init)
         . = ALIGN(4K);
         *(.text)
+        . = ALIGN(4K);
         PROVIDE(_text_end = .);
     }
     .rodata : {

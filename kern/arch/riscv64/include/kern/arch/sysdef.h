@@ -11,6 +11,8 @@ typedef volatile uint64_t vaddr_t;
 
 #define asm __asm__
 
+#define PZ_ATTR_NORETURN __attribute__((noreturn))
+
 static inline void pz_write32(uintptr_t addr, uint32_t value)
 {
     *((volatile uint32_t *)(addr)) = value;

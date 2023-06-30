@@ -27,7 +27,7 @@ void pz_start_kern()
     pz_arch_start_kern(pz_start_kern_vm);
 }
 
-__attribute__((used)) static void pz_start_kern_vm(void)
+static void pz_start_kern_vm(void)
 {
     printf("Initializing allocator...\n");
     pz_alloc_init();

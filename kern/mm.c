@@ -8,10 +8,12 @@
 #include "kern/string.h"
 #include "kern/sysdef.h"
 
-#ifndef PZ_MEM_START
-#warning "PZ_MEM_START is not defined. Use default value (0x80000000)"
-#define PZ_MEM_START 0x80000000
+#ifndef PZ_CONFIG_MEM_START
+#warning "PZ_CONFIG_MEM_START is not defined. Use default value (0x80000000)"
+#define PZ_CONFIG_MEM_START 0x80000000
 #endif
+
+#define PZ_MEM_START ((uint64_t)PZ_CONFIG_MEM_START)
 
 #define KVA_START ((uintptr_t)(-1) << (VA_BITS - 1))
 
