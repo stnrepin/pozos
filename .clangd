@@ -1,2 +1,3 @@
-CompilationDatabase:
-    build-deb/
+CompileFlags:
+    CompilationDatabase:
+        build-deb/
