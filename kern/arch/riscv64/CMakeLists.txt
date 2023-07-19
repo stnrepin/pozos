@@ -1,6 +1,7 @@
 add_library(
     pz_arch_riscv64
         start.S
+        console.c
         init.c
         mm.c
 )

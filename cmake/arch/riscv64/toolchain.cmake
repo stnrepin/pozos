@@ -3,7 +3,7 @@ include(${toolchain_dir}/toolchain-common.cmake)
 
 set(CMAKE_SYSTEM_PROCESSOR riscv64)
 
-set(PZ_CONFIG_MEM_START 0x80000000)
+set(PZ_CONFIG_MEM_START 0x84000000)
 
 set(
     riscv_options

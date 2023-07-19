@@ -21,7 +21,6 @@ int ATTR_WEAK pz_umain(void)
 
 void pz_start_kern()
 {
-    pz_sys_uart_init();
     printf("Loading kernel...\n");
 
     pz_arch_start_kern(pz_start_kern_vm);

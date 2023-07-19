@@ -3,7 +3,6 @@
 #include "kern/arch/mm.h"
 
 #include "kern/printf.h"
-#include "kern/uart.h"
 #include "kern/kalloc.h"
 #include "kern/string.h"
 #include "kern/sysdef.h"
@@ -40,7 +39,7 @@ pte_t *walk(pagetbl_ptr_t tbl, uint64_t va, int alloc);
 
 static inline void panic(const char *mes)
 {
-    pz_sys_uart_puts(mes);
+    printf("%s", mes);
 }
 
 void pz_mm_init(void)
@@ -48,8 +47,6 @@ void pz_mm_init(void)
     g_kvm.ptbl = (pagetbl_ptr_t)pz_alloc_pnew();
 
     memset((void *)g_kvm.ptbl, 0, PZ_PAGESZ);
-
-    kmap(pz_sys_uart_base(), pz_sys_uart_base(), PZ_PAGESZ, PTE_R | PTE_W);
 
     kmap((uint64_t)PZ_MEM_START, PZ_MEM_START,
          (uint64_t)_text_end - PZ_MEM_START, PTE_R | PTE_X);

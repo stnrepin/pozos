@@ -4,12 +4,14 @@
     .section .init
     .global _start
 _start:
-    # sp = g_stacks + (mhardid * PZ_PAGESZ)
+    # Setup stacks
+    #   sp = g_stacks + (mhardid * PZ_PAGESZ)
+    #   a6: hart id (SBI)
+    mv t1, a6
+    addi t1, t1, 1
+    li t0, PZ_PAGESZ
+    mul t0, t0, t1
     la sp, g_stacks
-    li a0, PZ_PAGESZ
-    csrr a1, mhartid
-    addi a1, a1, 1
-    mul a0, a0, a1
     add sp, sp, a0
 
     jal _clear_bss
