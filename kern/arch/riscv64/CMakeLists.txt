@@ -4,6 +4,7 @@ add_library(
         console.c
         init.c
         mm.c
+        utils.c
 )
 
 target_include_directories(

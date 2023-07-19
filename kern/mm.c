@@ -6,6 +6,7 @@
 #include "kern/kalloc.h"
 #include "kern/string.h"
 #include "kern/sysdef.h"
+#include "kern/utils.h"
 
 #ifndef PZ_CONFIG_MEM_START
 #warning "PZ_CONFIG_MEM_START is not defined. Use default value (0x80000000)"
@@ -37,11 +38,6 @@ static int map(pagetbl_ptr_t tbl, uint64_t va, uint64_t pa, uint64_t sz,
                int perm);
 pte_t *walk(pagetbl_ptr_t tbl, uint64_t va, int alloc);
 
-static inline void panic(const char *mes)
-{
-    printf("%s", mes);
-}
-
 void pz_mm_init(void)
 {
     g_kvm.ptbl = (pagetbl_ptr_t)pz_alloc_pnew();
@@ -63,7 +59,7 @@ void pz_mm_init_cpu(void)
 static void kmap(uint64_t va, uint64_t pa, uint64_t sz, int perm)
 {
     if (map(g_kvm.ptbl, va, pa, sz, perm) != 0) {
-        panic("vm panic: map failed\n");
+        pz_panic("vm panic: map failed\n");
     }
 }
 
@@ -75,7 +71,7 @@ static int map(pagetbl_ptr_t tbl, uint64_t va, uint64_t pa, uint64_t sz,
     pte_t *pte;
 
     if (sz == 0) {
-        panic("vm panic: map: size == 0\n");
+        pz_panic("vm panic: map: size == 0\n");
         return -1;
     }
 
@@ -90,7 +86,7 @@ static int map(pagetbl_ptr_t tbl, uint64_t va, uint64_t pa, uint64_t sz,
         }
         if ((*pte & PTE_V) != 0) {
             printf("i=%d, pa=%lx, var=%lx\n", i, pa, var);
-            panic("vm panic: map: already created PTE\n");
+            pz_panic("vm panic: map: already created PTE\n");
             return -3;
         }
         *pte = PZ_ARCH_MM_PA2PTE(pa) | perm | PTE_V;
@@ -112,7 +108,7 @@ pte_t *walk(pagetbl_ptr_t tbl, uint64_t va, int alloc)
     pte_t *pte;
 
     if (va >= PZ_ARCH_MM_MAX_VA) {
-        panic("vm panic: walk: va too large\n");
+        pz_panic("vm panic: walk: va too large\n");
     }
 
     for (lvl = 2; lvl > 0; lvl--) {

@@ -7,8 +7,8 @@
 #include "kern/sched.h"
 #include "kern/uart.h"
 #include "kern/printf.h"
-
 #include "kern/sysdef.h"
+#include "kern/utils.h"
 
 static void pz_init();
 static void pz_start_kern_vm(void);
@@ -51,7 +51,5 @@ static void pz_init(void)
     (void)pz_umain();
     printf("umain() returned\n");
 
-    while (1) {
-        // @todo: pz_arch_wfi();
-    }
+    pz_shutdown();
 }

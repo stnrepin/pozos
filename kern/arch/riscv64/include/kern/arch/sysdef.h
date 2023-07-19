@@ -12,6 +12,7 @@ typedef volatile uint64_t vaddr_t;
 #define asm __asm__
 
 #define PZ_ATTR_NORETURN __attribute__((noreturn))
+#define PZ_ATTR_UNREACHABLE __builtin_unreachable
 
 static inline void pz_write32(uintptr_t addr, uint32_t value)
 {

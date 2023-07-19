@@ -10,6 +10,7 @@ add_library(
         sched.c
         string.c
         uart.c
+        utils.c
 )
 target_compile_definitions(
     pozos_kern
